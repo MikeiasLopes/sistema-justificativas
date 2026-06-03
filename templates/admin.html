@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+
+<title>Painel RH</title>
+
+<style>
+body{
+    font-family: Arial;
+    background:#f4f6f9;
+    padding:30px;
+}
+
+h1{
+    color:#003366;
+}
+
+.cards{
+    display:flex;
+    gap:20px;
+    margin-bottom:25px;
+    flex-wrap:wrap;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+    min-width:180px;
+}
+
+.card h2{
+    margin:0;
+    color:#003366;
+    font-size:28px;
+}
+
+.card p{
+    margin:5px 0 0 0;
+    font-weight:bold;
+}
+
+.filtro{
+    margin-bottom:20px;
+    background:white;
+    padding:15px;
+    border-radius:8px;
+}
+
+input, select{
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    margin-right:8px;
+    margin-bottom:8px;
+}
+
+button{
+    background:#003366;
+    color:white;
+    border:none;
+    padding:10px 20px;
+    border-radius:6px;
+    cursor:pointer;
+    margin-right:10px;
+}
+
+button:hover{
+    background:#0055aa;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+}
+
+th{
+    background:#003366;
+    color:white;
+}
+
+th,td{
+    border:1px solid #ddd;
+    padding:10px;
+    text-align:left;
+    vertical-align:middle;
+}
+
+img{
+    max-width:150px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Painel de Justificativas</h1>
+
+<div class="cards">
+
+    <div class="card">
+        <h2>{{ total }}</h2>
+        <p>📄 Total</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ pendentes }}</h2>
+        <p>⏳ Pendentes</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ aprovadas }}</h2>
+        <p>✅ Aprovadas</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ reprovadas }}</h2>
+        <p>❌ Reprovadas</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ taxa_aprovacao }}%</h2>
+        <p>📈 Taxa Aprovação</p>
+    </div>
+
+</div>
+
+<form method="GET" action="/admin" class="filtro">
+
+    <input
+        type="text"
+        name="pesquisa"
+        placeholder="Pesquisar nome, chapa, responsável, veículo ou linha"
+        value="{{ pesquisa }}"
+        style="width:320px;">
+
+    <select name="status">
+        <option value="">Todos os status</option>
+
+        <option value="Pendente" {% if status == "Pendente" %}selected{% endif %}>
+            Pendente
+        </option>
+
+        <option value="Aprovado" {% if status == "Aprovado" %}selected{% endif %}>
+            Aprovado
+        </option>
+
+        <option value="Reprovado" {% if status == "Reprovado" %}selected{% endif %}>
+            Reprovado
+        </option>
+    </select>
+
+    <input
+        type="date"
+        name="data_inicial"
+        value="{{ data_inicial }}">
+
+    <input
+        type="date"
+        name="data_final"
+        value="{{ data_final }}">
+
+    <button type="submit">🔎 Pesquisar</button>
+
+    <a href="/admin">
+        <button type="button">Limpar</button>
+    </a>
+
+</form>
+
+<a href="/exportar_excel">
+    <button>Exportar Excel</button>
+</a>
+
+<a href="/logout">
+    <button>Sair</button>
+</a>
+
+<br><br>
+
+<table>
+
+<tr>
+<tr>
+    <th>ID</th>
+    <th>Protocolo</th>
+    <th>Nome</th>
+    <th>Matrícula</th>
+    <th>Data</th>
+    <th>Prefixo Veículo</th>
+    <th>Linha/Escala</th>
+    <th>Início Jornada</th>
+    <th>Final Jornada</th>
+    <th>Início Intervalo</th>
+    <th>Final Intervalo</th>
+    <th>Justificativa</th>
+    <th>Status</th>
+    <th>Responsável</th>
+    <th>Chapa Resp.</th>
+    <th>Assinatura Motorista</th>
+    <th>Assinatura Responsável</th>
+    <th>Observação RH</th>
+    <th>Usuário RH</th>
+    <th>Data Ação</th>
+    <th>Ações</th>
+</tr>
+
+</tr>
+
+{% for registro in registros %}
+
+<tr>
+    <td>{{ registro[0] }}</td>  <!-- ID -->
+    <td>{{ registro[1] }}</td>  <!-- Protocolo -->
+    <td>{{ registro[2] }}</td>  <!-- Nome -->
+    <td>{{ registro[3] }}</td>  <!-- Matrícula -->
+    <td>{{ registro[4] }}</td>  <!-- Data -->
+    <td>{{ registro[5] }}</td>  <!-- Prefixo Veículo -->
+    <td>{{ registro[6] }}</td>  <!-- Linha/Escala -->
+    <td>{{ registro[7] }}</td>  <!-- Início Jornada -->
+    <td>{{ registro[8] }}</td>  <!-- Final Jornada -->
+    <td>{{ registro[9] }}</td>  <!-- Início Intervalo -->
+    <td>{{ registro[10] }}</td> <!-- Final Intervalo -->
+    <td>{{ registro[11] }}</td> <!-- Justificativa -->
+
+    <td>
+        {% if registro[12] == "Aprovado" %}
+            <span style="color:green;font-weight:bold;">🟢 Aprovado</span>
+        {% elif registro[12] == "Reprovado" %}
+            <span style="color:red;font-weight:bold;">🔴 Reprovado</span>
+        {% else %}
+            <span style="color:#b58900;font-weight:bold;">🟡 Pendente</span>
+        {% endif %}
+    </td>
+
+    <td>{{ registro[13] }}</td> <!-- Responsável -->
+    <td>{{ registro[14] }}</td> <!-- Chapa Responsável -->
+
+    <td>
+        {% if registro[15] %}
+            <img src="{{ registro[15] }}">
+        {% else %}
+            Sem assinatura
+        {% endif %}
+    </td>
+
+    <td>
+        {% if registro[16] %}
+            <img src="{{ registro[16] }}">
+        {% else %}
+            Sem assinatura
+        {% endif %}
+    </td>
+
+    <td>{{ registro[17] }}</td> <!-- Observação RH -->
+    <td>{{ registro[18] }}</td> <!-- Usuário RH -->
+    <td>{{ registro[19] }}</td> <!-- Data Ação -->
+
+    <td>
+        <a href="/aprovar/{{ registro[0] }}">✅ Aprovar</a>
+
+        <br><br>
+
+        <a href="/reprovar/{{ registro[0] }}">❌ Reprovar</a>
+
+        <br><br>
+
+        <a href="/pdf/{{ registro[0] }}">📄 PDF</a>
+
+        <br><br>
+
+        <a href="/excluir/{{ registro[0] }}" onclick="return confirm('Tem certeza que deseja excluir este registro?')">
+            🗑 Excluir
+        </a>
+    </td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+</body>
+</html>

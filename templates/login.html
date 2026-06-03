@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Login RH</title>
+
+<style>
+body{
+    font-family: Arial;
+    background:#f4f6f9;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.caixa{
+    background:white;
+    padding:30px;
+    border-radius:10px;
+    box-shadow:0 0 15px rgba(0,0,0,0.1);
+    width:350px;
+}
+
+h1{
+    text-align:center;
+    color:#003366;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    margin-bottom:15px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    box-sizing:border-box;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    background:#003366;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#0055aa;
+}
+</style>
+</head>
+
+<body>
+
+<div class="caixa">
+
+    <h1>Login RH</h1>
+
+    <form method="POST">
+
+        <input
+            type="text"
+            name="usuario"
+            placeholder="Usuário"
+            required>
+
+        <input
+            type="password"
+            name="senha"
+            placeholder="Senha"
+            required>
+
+        <button type="submit">
+            Entrar
+        </button>
+
+    </form>
+
+</div>
+
+</body>
+</html>

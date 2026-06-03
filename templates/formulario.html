@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Justificativa de Horas</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f4f6f9;
+    margin:0;
+    padding:40px;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 0 15px rgba(0,0,0,0.1);
+}
+
+h1{
+    text-align:center;
+    color:#003366;
+    margin-bottom:30px;
+}
+
+.row{
+    display:flex;
+    gap:20px;
+}
+
+.col{
+    flex:1;
+}
+
+label{
+    font-weight:bold;
+    display:block;
+    margin-bottom:5px;
+}
+
+input, textarea{
+    width:100%;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    margin-bottom:20px;
+    box-sizing:border-box;
+}
+
+textarea{
+    resize:none;
+}
+
+.assinatura{
+    border:2px solid #ccc;
+    border-radius:8px;
+    background:white;
+    width:100%;
+}
+
+button{
+    background:#003366;
+    color:white;
+    border:none;
+    padding:12px 30px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:16px;
+    margin-right:10px;
+    margin-bottom:10px;
+}
+
+button:hover{
+    background:#0055aa;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>JUSTIFICATIVA DE HORAS</h1>
+
+<form action="/enviar" method="POST" onsubmit="salvarAssinaturas()">
+
+<input type="hidden" name="assinatura" id="assinatura_input">
+<input type="hidden" name="assinatura_responsavel" id="assinatura_responsavel_input">
+
+
+
+<label>Nome completo do funcionário:</label>
+<input type="text" name="nome" required>
+
+
+
+<div class="row">
+
+    <div class="col">
+        <label>Chapa Nº:</label>
+        <input type="text" name="matricula" required>
+    </div>
+
+    <div class="col">
+        <label>Data:</label>
+        <input type="date" name="data" required>
+    </div>
+
+</div>
+
+<div class="row">
+
+    <div class="col">
+        <label>Prefixo do Veículo:</label>
+        <input type="text" name="prefixo_veiculo" required>
+    </div>
+
+    <div class="col">
+        <label>Linha / Escala:</label>
+        <input type="text" name="linha_escala">
+    </div>
+
+</div>
+
+<div class="row">
+    <div class="col">
+        <label>Início da Jornada:</label>
+        <input type="time" name="inicio_jornada" required>
+    </div>
+
+    <div class="col">
+        <label>Final da Jornada:</label>
+        <input type="time" name="final_jornada" required>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col">
+        <label>Início do Intervalo</label>
+        <input type="time" name="inicio_intervalo" required>
+    </div>
+
+    <div class="col">
+        <label>Final do Intervalo</label>
+        <input type="time" name="final_intervalo" required>
+    </div>
+</div>
+
+<label>Justificativa</label>
+<textarea rows="5" name="justificativa" required></textarea>
+
+<label>Assinatura do Motorista</label>
+<canvas id="assinatura_motorista" width="800" height="200" class="assinatura"></canvas>
+
+<br><br>
+
+<button type="button" onclick="limparAssinaturaMotorista()">
+    Limpar Assinatura do Motorista
+</button>
+
+<br><br>
+
+<h3 style="color:#003366;">
+    Dados do Responsável pelo Envio
+</h3>
+
+<div class="row">
+
+    <div class="col">
+        <label>Nome do completo do responsável</label>
+        <input
+            type="text"
+            name="nome_responsavel"
+            required>
+    </div>
+
+    <div class="col">
+        <label>Chapa Nº</label>
+        <input
+            type="text"
+            name="chapa_responsavel"
+            required>
+    </div>
+
+</div>
+
+
+<label>Assinatura do Responsável pelo Envio</label>
+<canvas id="assinatura_responsavel" width="800" height="200" class="assinatura"></canvas>
+
+<br><br>
+
+<button type="button" onclick="limparAssinaturaResponsavel()">
+    Limpar Assinatura do Responsável
+</button>
+
+<br><br>
+
+<button type="submit">
+    Enviar Justificativa
+</button>
+
+</form>
+
+</div>
+
+<script>
+const canvasMotorista = document.getElementById("assinatura_motorista");
+const ctxMotorista = canvasMotorista.getContext("2d");
+
+const canvasResponsavel = document.getElementById("assinatura_responsavel");
+const ctxResponsavel = canvasResponsavel.getContext("2d");
+
+let desenhandoMotorista = false;
+let desenhandoResponsavel = false;
+
+canvasMotorista.addEventListener("mousedown", () => {
+    desenhandoMotorista = true;
+});
+
+canvasMotorista.addEventListener("mouseup", () => {
+    desenhandoMotorista = false;
+    ctxMotorista.beginPath();
+});
+
+canvasMotorista.addEventListener("mousemove", desenharMotorista);
+
+function desenharMotorista(event){
+    if(!desenhandoMotorista) return;
+
+    const rect = canvasMotorista.getBoundingClientRect();
+
+    ctxMotorista.lineWidth = 2;
+    ctxMotorista.lineCap = "round";
+
+    ctxMotorista.lineTo(
+        event.clientX - rect.left,
+        event.clientY - rect.top
+    );
+
+    ctxMotorista.stroke();
+    ctxMotorista.beginPath();
+
+    ctxMotorista.moveTo(
+        event.clientX - rect.left,
+        event.clientY - rect.top
+    );
+}
+
+function limparAssinaturaMotorista(){
+    ctxMotorista.clearRect(0, 0, canvasMotorista.width, canvasMotorista.height);
+}
+
+canvasResponsavel.addEventListener("mousedown", () => {
+    desenhandoResponsavel = true;
+});
+
+canvasResponsavel.addEventListener("mouseup", () => {
+    desenhandoResponsavel = false;
+    ctxResponsavel.beginPath();
+});
+
+canvasResponsavel.addEventListener("mousemove", desenharResponsavel);
+
+function desenharResponsavel(event){
+    if(!desenhandoResponsavel) return;
+
+    const rect = canvasResponsavel.getBoundingClientRect();
+
+    ctxResponsavel.lineWidth = 2;
+    ctxResponsavel.lineCap = "round";
+
+    ctxResponsavel.lineTo(
+        event.clientX - rect.left,
+        event.clientY - rect.top
+    );
+
+    ctxResponsavel.stroke();
+    ctxResponsavel.beginPath();
+
+    ctxResponsavel.moveTo(
+        event.clientX - rect.left,
+        event.clientY - rect.top
+    );
+}
+
+function limparAssinaturaResponsavel(){
+    ctxResponsavel.clearRect(0, 0, canvasResponsavel.width, canvasResponsavel.height);
+}
+
+function salvarAssinaturas(){
+    document.getElementById("assinatura_input").value =
+        canvasMotorista.toDataURL("image/png");
+
+    document.getElementById("assinatura_responsavel_input").value =
+        canvasResponsavel.toDataURL("image/png");
+}
+</script>
+
+</body>
+</html>

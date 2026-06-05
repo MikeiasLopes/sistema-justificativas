@@ -425,6 +425,8 @@ def exportar_excel():
 
     return send_file(arquivo, as_attachment=True)
 
+
+#PDF
 @app.route("/pdf/<int:id>")
 def gerar_pdf(id):
 
@@ -479,62 +481,57 @@ def gerar_pdf(id):
 
     def titulo_secao(texto, y):
         pdf.setFillColorRGB(*cor_azul)
-        pdf.roundRect(30, y - 5, 535, 20, 4, fill=1, stroke=0)
+        pdf.roundRect(30, y - 3, 535, 18, 3, fill=1, stroke=0)
 
         pdf.setFillColorRGB(1, 1, 1)
-        pdf.setFont("Helvetica-Bold", 9)
-        pdf.drawString(42, y, texto)
+        pdf.setFont("Helvetica-Bold", 8)
+        pdf.drawString(42, y + 2, texto)
 
         pdf.setFillColorRGB(0, 0, 0)
-        return y - 26
+        return y - 22
 
-    def campo(label, valor, x, y, deslocamento=105):
-        pdf.setFont("Helvetica-Bold", 9)
+    def campo(label, valor, x, y, deslocamento=105, tamanho=8):
+        pdf.setFont("Helvetica-Bold", tamanho)
         pdf.drawString(x, y, f"{label}:")
-        pdf.setFont("Helvetica", 9)
+        pdf.setFont("Helvetica", tamanho)
         pdf.drawString(x + deslocamento, y, str(valor or ""))
-        return y - 13
+        return y - 12
 
-    def assinatura(base64_img, x, y, titulo):
+    def assinatura(base64_img, x, y, titulo, nome_assinante):
         pdf.setFillColorRGB(1, 1, 1)
         pdf.roundRect(x, y, 250, 90, 6, stroke=1, fill=0)
 
         try:
-            if base64_img:
-                imagem = base64.b64decode(base64_img.split(",")[1])
+            if base64_img and "," in base64_img:
+                imagem_base64 = base64_img.split(",", 1)[1]
+                imagem_bytes = base64.b64decode(imagem_base64)
+
+                arquivo_imagem = io.BytesIO(imagem_bytes)
 
                 pdf.drawImage(
-                    ImageReader(io.BytesIO(imagem)),
+                    ImageReader(arquivo_imagem),
                     x + 15,
-                    y + 12,
+                    y + 15,
                     width=220,
-                    height=65,
+                    height=60,
                     mask="auto"
                 )
             else:
                 pdf.setFont("Helvetica", 8)
                 pdf.drawCentredString(x + 125, y + 42, "Sem assinatura")
+        except Exception as erro:
+            print("Erro na assinatura:", erro)
+            pdf.setFont("Helvetica", 8)
+            pdf.drawCentredString(x + 125, y + 42, "Erro ao carregar assinatura")
 
-        except:
-            pdf.line(x + 15, y - 14, x + 235, y - 14)
+        pdf.setStrokeColorRGB(0, 0, 0)
+        pdf.line(x + 25, y - 8, x + 225, y - 8)
 
-            pdf.setFont("Helvetica-Bold", 8)
-            pdf.drawCentredString(x + 125, y - 27, titulo)
+        pdf.setFont("Helvetica-Bold", 7)
+        pdf.drawCentredString(x + 125, y - 18, titulo)
 
-            pdf.setFont("Helvetica", 7)
-
-            if "Motorista" in titulo:
-                pdf.drawCentredString(
-                    x + 125,
-                    y - 39,
-                    str(registro[2] or "")
-                )
-            else:
-                pdf.drawCentredString(
-                    x + 125,
-                    y - 39,
-                    str(registro[13] or "")
-                )
+        pdf.setFont("Helvetica", 7)
+        pdf.drawCentredString(x + 125, y - 28, str(nome_assinante or ""))
 
     # CABEÇALHO
     pdf.setFillColorRGB(*cor_azul)
@@ -547,7 +544,7 @@ def gerar_pdf(id):
     try:
         pdf.drawImage(
             "static/logo_vrt.jpg",
-            3,  # margem esquerda
+            3,
             782,
             width=230,
             height=50,
@@ -557,9 +554,11 @@ def gerar_pdf(id):
     except Exception as erro:
         print("Erro ao carregar logo:", erro)
 
-    # Área à direita da logo
+
+    # Área a direita (título JUSTIFICATIVA DIGITAL)
+
     inicio_area = 250
-    fim_area = 595  # largura da página A4
+    fim_area = 595
     centro = (inicio_area + fim_area) / 2
 
     pdf.setFillColorRGB(1, 1, 1)
@@ -568,21 +567,21 @@ def gerar_pdf(id):
     pdf.drawCentredString(
         centro,
         812,
-        "JUSTIFICATIVA DIGITAL"
+        "e-JUSTIFICATIVA"
     )
 
     pdf.setFont("Helvetica", 11)
     pdf.drawCentredString(
         centro,
         794,
-        "Controle de Ajuste de Jornada"
+        "Controle de ajuste de jornada"
     )
 
     pdf.setFont("Helvetica", 8)
     pdf.drawCentredString(
         centro,
         780,
-        "Documento gerado eletronicamente pelo sistema interno"
+        "Documento gerado eletronicamente"
     )
 
     pdf.setFillColorRGB(0, 0, 0)
@@ -601,8 +600,8 @@ def gerar_pdf(id):
     pdf.setStrokeColorRGB(*cor_status)
 
     pdf.roundRect(
-        420,
-        724,
+        430,
+        730,
         130,
         30,
         5,
@@ -613,8 +612,8 @@ def gerar_pdf(id):
     pdf.setFont("Helvetica-Bold", 20)
 
     pdf.drawCentredString(
-        485,
-        724,
+        495,
+        738,
         status.upper()
     )
 
@@ -624,7 +623,7 @@ def gerar_pdf(id):
 
 
     # PROTOCOLO
-    y = 745
+    y = 740
 
     pdf.setFillColorRGB(0.92, 0.92, 0.92)
     pdf.roundRect(30, y - 8, 270, 25, 4, fill=1, stroke=0)
@@ -635,7 +634,7 @@ def gerar_pdf(id):
 
     pdf.setFont("Helvetica", 8)
     pdf.drawRightString(
-        555,
+        547,
         722,
         f"Gerado em: {datetime.now().strftime('%d/%m/%Y %H:%M')}"
     )
@@ -645,61 +644,67 @@ def gerar_pdf(id):
     # MOTORISTA
     y = titulo_secao("INFORMAÇÕES DO MOTORISTA", y)
 
-    pdf.roundRect(30, y - 76, 535, 86, 6, stroke=1, fill=0)
+    pdf.roundRect(30, y - 60, 535, 68, 5, stroke=1, fill=0)
 
-    y = campo("Nome", registro[2], 45, y - 12)
-    y = campo("Matrícula / Chapa", registro[3], 45, y)
-    y = campo("Data", registro[4], 45, y)
-    y = campo("Prefixo do Veículo", registro[5], 45, y)
-    y = campo("Linha / Escala", registro[6], 45, y)
+    y_motorista = y - 12
+    y_motorista = campo("Nome", registro[2], 45, y_motorista, 105, 8)
+    y_motorista = campo("Matrícula / Chapa", registro[3], 45, y_motorista, 105, 8)
+    y_motorista = campo("Data", registro[4], 45, y_motorista, 105, 8)
+    y_motorista = campo("Prefixo do Veículo", registro[5], 45, y_motorista, 105, 8)
+    y_motorista = campo("Linha / Escala", registro[6], 45, y_motorista, 105, 8)
 
-    y -= 16
+    y -= 78
 
     # JORNADA
     y = titulo_secao("REGISTRO DA JORNADA", y)
 
-    pdf.roundRect(30, y - 48, 535, 58, 6, stroke=1, fill=0)
+    pdf.roundRect(30, y - 42, 535, 50, 5, stroke=1, fill=0)
 
     pdf.setFont("Helvetica-Bold", 8)
     pdf.drawString(45, y - 15, "Início da Jornada:")
     pdf.drawString(315, y - 15, "Final da Jornada:")
-    pdf.drawString(45, y - 35, "Início do Intervalo:")
-    pdf.drawString(315, y - 35, "Final do Intervalo:")
+    pdf.drawString(45, y - 32, "Início do Intervalo:")
+    pdf.drawString(315, y - 32, "Final do Intervalo:")
 
     pdf.setFont("Helvetica", 8)
     pdf.drawString(160, y - 15, str(registro[7] or ""))
     pdf.drawString(430, y - 15, str(registro[8] or ""))
-    pdf.drawString(160, y - 35, str(registro[9] or ""))
-    pdf.drawString(430, y - 35, str(registro[10] or ""))
+    pdf.drawString(160, y - 32, str(registro[9] or ""))
+    pdf.drawString(430, y - 32, str(registro[10] or ""))
 
-    y -= 73
+    y -= 60
 
     # JUSTIFICATIVA
     y = titulo_secao("JUSTIFICATIVA APRESENTADA", y)
 
     pdf.setFillColorRGB(0.97, 0.97, 0.97)
-    pdf.roundRect(30, y - 72, 535, 82, 6, fill=1, stroke=1)
+    pdf.roundRect(30, y - 58, 535, 66, 5, fill=1, stroke=1)
 
     pdf.setFillColorRGB(0, 0, 0)
-    texto_quebrado(registro[11], 45, y - 15, 95, 8.5)
+    texto_quebrado(registro[11], 45, y - 15, 95, 8)
 
-    y -= 100
+    y -= 76
 
     # RESPONSÁVEL E RH
     y = titulo_secao("ANÁLISE E VALIDAÇÃO", y)
 
-    pdf.roundRect(30, y - 86, 260, 96, 6, stroke=1, fill=0)
-    pdf.roundRect(305, y - 86, 260, 96, 6, stroke=1, fill=0)
-
-    pdf.setFont("Helvetica-Bold", 8.5)
-    pdf.drawString(45, y - 15, "Responsável pelo Envio")
-    pdf.drawString(320, y - 15, "Validação do RH")
-
-    campo("Nome", registro[13], 45, y - 35, 70)
-    campo("Chapa", registro[14], 45, y - 50, 70)
+    pdf.roundRect(30, y - 65, 260, 73, 5, stroke=1, fill=0)
+    pdf.roundRect(305, y - 65, 260, 73, 5, stroke=1, fill=0)
 
     pdf.setFont("Helvetica-Bold", 8)
-    pdf.drawString(320, y - 35, "Status:")
+    pdf.drawString(45, y - 13, "Responsável pelo Envio")
+    pdf.drawString(320, y - 13, "Validação do RH")
+
+    campo("Nome", registro[13], 45, y - 30, 70, 8)
+    campo("Chapa", registro[14], 45, y - 44, 70, 8)
+
+    pdf.setFont("Helvetica-Bold", 8)
+    pdf.drawString(45, y - 58, "Observação RH:")
+    pdf.setFont("Helvetica", 7)
+    pdf.drawString(125, y - 58, str(registro[17] or ""))
+
+    pdf.setFont("Helvetica-Bold", 8)
+    pdf.drawString(320, y - 30, "Status:")
 
     if status == "Aprovado":
         pdf.setFillColorRGB(0, 0.55, 0)
@@ -709,43 +714,34 @@ def gerar_pdf(id):
         pdf.setFillColorRGB(0.85, 0.55, 0)
 
     pdf.setFont("Helvetica-Bold", 8)
-    pdf.drawString(385, y - 35, status)
+    pdf.drawString(385, y - 30, status)
 
     pdf.setFillColorRGB(0, 0, 0)
 
-    pdf.setFont("Helvetica-Bold", 8)
-    pdf.drawString(320, y - 50, "Usuário RH:")
-    pdf.setFont("Helvetica", 8)
-    pdf.drawString(385, y - 50, str(registro[18] or ""))
+    campo("Usuário RH", registro[18], 320, y - 44, 70, 8)
+    campo("Data Ação", registro[19], 320, y - 58, 70, 8)
 
-    pdf.setFont("Helvetica-Bold", 8)
-    pdf.drawString(320, y - 65, "Data Ação:")
-    pdf.setFont("Helvetica", 8)
-    pdf.drawString(385, y - 65, str(registro[19] or ""))
-
-    pdf.setFont("Helvetica-Bold", 8)
-    pdf.drawString(45, y - 68, "Observação RH:")
-    texto_quebrado(registro[17], 130, y - 68, 38, 8)
-
-    y -= 113
+    y -= 84
 
     # ASSINATURAS
     y = titulo_secao("ASSINATURAS DIGITAIS", y)
 
-    assinatura_y = y - 92
+    assinatura_y = y - 70
 
     assinatura(
         registro[15],
         30,
         assinatura_y,
-        "Assinatura do Motorista"
+        "Assinatura do Motorista",
+        registro[2]
     )
 
     assinatura(
         registro[16],
         315,
         assinatura_y,
-        "Assinatura do Responsável"
+        "Assinatura do Responsável",
+        registro[13]
     )
 
     # RODAPÉ
